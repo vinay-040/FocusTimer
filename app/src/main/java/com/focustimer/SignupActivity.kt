@@ -12,21 +12,22 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.util.regex.Pattern
 
 class SignupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignupBinding
+    private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var db: FirebaseFirestore
 
     private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
         try {
-            val account = task.getResult(ApiException::class.java)
-            // Signed in successfully, navigate to the main activity
-            Toast.makeText(this, "Sign up successful", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this, HomeActivity::class.java))
-            finish()
+            val account = task.getResult(ApiException::class.java)!!
+            // You can now use the account to sign in to Firebase
         } catch (e: ApiException) {
             Log.w("SignupActivity", "signInResult:failed code=" + e.statusCode)
         }
@@ -37,6 +38,13 @@ class SignupActivity : AppCompatActivity() {
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
+
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
         // Configure Google Sign-In
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
@@ -45,9 +53,7 @@ class SignupActivity : AppCompatActivity() {
 
         binding.signupButton.setOnClickListener {
             if (validateInput()) {
-                Toast.makeText(this, "Sign up successful", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, LoginActivity::class.java))
-                finish()
+                checkUserExists()
             }
         }
 
@@ -59,6 +65,62 @@ class SignupActivity : AppCompatActivity() {
         binding.loginTextView.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
         }
+    }
+
+    private fun checkUserExists() {
+        val email = binding.emailEditText.text.toString().trim()
+
+        db.collection("users").whereEqualTo("email", email).get()
+            .addOnSuccessListener { documents ->
+                if (documents.isEmpty) {
+                    createUser()
+                } else {
+                    binding.emailInputLayout.error = "User with this email already exists"
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.w("SignupActivity", "Error getting documents: ", exception)
+            }
+    }
+
+    private fun createUser() {
+        val email = binding.emailEditText.text.toString().trim()
+        val password = binding.passwordEditText.text.toString().trim()
+
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    Log.d("SignupActivity", "createUserWithEmail:success")
+                    val user = auth.currentUser
+                    // Add a new document with a generated ID
+                    val userMap = hashMapOf(
+                        "name" to binding.nameEditText.text.toString().trim(),
+                        "email" to email,
+                        "phone" to binding.phoneEditText.text.toString().trim()
+                    )
+                    db.collection("users").document(user!!.uid)
+                        .set(userMap)
+                        .addOnSuccessListener { 
+                            Toast.makeText(baseContext, "Sign up successful.", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this, LoginActivity::class.java))
+                            finish()
+                         }
+                        .addOnFailureListener { e -> 
+                            Log.w("SignupActivity", "Error adding document", e)
+                            Toast.makeText(baseContext, "Error saving user data.", Toast.LENGTH_SHORT).show()
+                        }
+
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w("SignupActivity", "createUserWithEmail:failure", task.exception)
+                    Toast.makeText(baseContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 
     private fun validateInput(): Boolean {
