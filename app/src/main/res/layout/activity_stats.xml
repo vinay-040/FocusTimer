@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".StatsActivity">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize" />
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <TextView
+            android:id="@+id/statsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:text="Statistics"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/appBarLayout" />
+
+        <TextView
+            android:id="@+id/totalFocusTimeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="Total Focus Time"
+            android:textSize="20sp"
+            app:layout_constraintStart_toStartOf="@+id/statsTitle"
+            app:layout_constraintTop_toBottomOf="@id/statsTitle" />
+
+        <TextView
+            android:id="@+id/totalFocusTimeValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0h 0m"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/totalFocusTimeLabel"
+            app:layout_constraintTop_toBottomOf="@+id/totalFocusTimeLabel" />
+
+        <TextView
+            android:id="@+id/sessionsCompletedLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Focus Sessions Completed"
+            android:textSize="20sp"
+            app:layout_constraintStart_toStartOf="@+id/totalFocusTimeValue"
+            app:layout_constraintTop_toBottomOf="@+id/totalFocusTimeValue" />
+
+        <TextView
+            android:id="@+id/sessionsCompletedValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@id/sessionsCompletedLabel"
+            app:layout_constraintTop_toBottomOf="@+id/sessionsCompletedLabel" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
